@@ -1,0 +1,56 @@
+service: ipf-chatbot
+
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: ap-northeast-2
+  profile: ipf
+  stackName: ipf-chatbot-stack
+  apiName: ipf-chatbot-api
+  memorySize: 256
+  tags:
+    service: general
+    environment: common
+    owner: klee
+  deploymentBucket:
+    name: ipf-release-ci-seoul
+    tags:
+      service: general
+      environment: common
+      owner: klee
+  role: arn:aws:iam::572836591883:role/ipf-chatbot
+  iamManagedPolicies: 
+    - 'arn:aws:iam::572836591883:policy/dynamodb-read-and-write-items'
+    - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+
+
+package:
+  individually: true
+  exclude:
+    - .nvmrc
+    - README.md
+    - package*.json
+    - node_moduels/**
+    - handler/**
+    - business_logic/**
+    - test/**
+    - docs/**
+
+
+plugins:
+  - serverless-plugin-include-dependencies
+
+
+functions:
+  alarm-listen:
+    handler: handler/alarm_bot.listenHandler
+    events:
+      - http:
+          path: aws-alarm
+          method: post
+
+  alarm-event:
+    handler: handler/alarm_bot.eventHandler
+    events:
+      - sns: arn:aws:sns:ap-northeast-2:572836591883:ipf-aws-alarm-bot

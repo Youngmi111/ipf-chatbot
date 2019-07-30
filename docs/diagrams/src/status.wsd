@@ -1,0 +1,59 @@
+@startuml
+
+actor User
+participant "Hangouts Chat" as chat
+participant "Bot Service" as bot
+participant "Bot Server" as server
+participant "DynamoDB" as db
+
+box "Google"
+    participant chat
+    participant bot
+end box
+
+box "iPF AWS"
+    actor "AWS CloudWatch" as alarm
+    participant server
+    participant db
+end box
+
+
+group Add a chat bot
+User -> chat: Add @ipf_dev_alarm bot as a friend
+activate chat
+chat -> bot
+activate bot
+bot -> server: Send the POST request\ncontains __ADDED_TO_SPACE__ event
+activate server
+server -> server: Parse the request\nand get the space id from the event
+activate server
+server -> db: Register __space id__\nso that the bot can send a message to the user
+activate db
+return
+return 
+return welcome message
+return 
+return Send the message
+end
+
+group If alarm occurs
+alarm -> server: Execute the function via SNS
+activate server
+server -> server: Parse the alarm message
+activate server
+server -> db: Get all the __space id__s registered
+activate db
+return space ids
+deactivate server
+server -> server: Authenticate with the private key and Google API Client\nto use Google API
+server -> server: Generate messages for all the space ids
+server -> bot: the messages
+activate bot
+bot -> chat
+activate chat
+deactivate bot
+chat -> User: Send the message
+deactivate chat
+end
+
+@enduml
