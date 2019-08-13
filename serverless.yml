@@ -9,20 +9,25 @@ provider:
   stackName: ipf-chatbot-stack
   apiName: ipf-chatbot-api
   memorySize: 256
+  stage: dev
+
   tags:
     service: general
     environment: common
     owner: klee
+
   deploymentBucket:
     name: ipf-release-ci-seoul
     tags:
       service: general
       environment: common
       owner: klee
+
   role: arn:aws:iam::572836591883:role/ipf-chatbot
-  iamManagedPolicies: 
-    - 'arn:aws:iam::572836591883:policy/dynamodb-read-and-write-items'
-    - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+
+  environment:
+    DYNAMODB_TABLE_NAME: ${env.DYNAMODB_TABLE_NAME}
+
 
 
 package:
@@ -40,6 +45,8 @@ package:
 
 plugins:
   - serverless-plugin-include-dependencies
+  - serverless-offline
+  - serverless-aws-alias
 
 
 functions:
@@ -54,3 +61,5 @@ functions:
     handler: handler/alarm_bot.eventHandler
     events:
       - sns: arn:aws:sns:ap-northeast-2:572836591883:ipf-aws-alarm-bot
+      -
+
