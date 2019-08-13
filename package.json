@@ -4,17 +4,21 @@
   "description": "Bots for iPF Hangouts Chat",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy:function": "sls deploy function"
+    "deploy:dev": "DYNAMODB_TABLE_NAME=ipf-test-chatbot sls deploy --alias=dev --verbose",
+    "deploy:prod": "DYNAMODB_TABLE_NAME=chatbots sls deploy --alias=prod --verbose"
   },
   "author": "klee@iportfolio.co.kr",
   "license": "ISC",
   "devDependencies": {
     "chai": "^4.2.0",
     "mocha": "^6.2.0",
+    "serverless-aws-alias": "^1.7.2",
+    "serverless-offline": "^5.8.0",
     "serverless-plugin-include-dependencies": "^3.2.1"
   },
   "dependencies": {
     "aws-sdk": "^2.500.0",
+    "axios": "^0.19.0",
     "googleapis": "^41.0.1"
   }
 }

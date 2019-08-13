@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+
 const { google } = require('googleapis');
 
 class ChatbotReceiver {
@@ -12,7 +13,7 @@ class ChatbotReceiver {
 
     get() {
         const params = {
-            'TableName': 'chatbots',
+            'TableName': process.env.DYNAMODB_TABLE_NAME,
             'KeyConditionExpression': 'bot_id = :id',
             'ExpressionAttributeValues': {
                 ':id': {
@@ -156,7 +157,7 @@ module.exports = class {
     generateMessage(message_obj) {
     }
 
-    send(message, callback) {
+    send(req_body, callback) {
         this.receiver.get().then(async (space_ids) => {
             const auth = await google.auth.getClient({
                 scopes: ['https://www.googleapis.com/auth/chat.bot']
@@ -170,9 +171,7 @@ module.exports = class {
                 tasks.push(chat.spaces.messages.create({
                     auth,
                     'parent': space_id,
-                    'requestBody': {
-                        'text': message
-                    },
+                    'requestBody': req_body,
                 }));
             }
 
