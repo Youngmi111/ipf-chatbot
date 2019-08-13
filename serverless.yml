@@ -1,4 +1,4 @@
-service: ipf-chatbot
+service: ipf-chatbots
 
 
 provider:
@@ -26,8 +26,8 @@ provider:
   role: arn:aws:iam::572836591883:role/ipf-chatbot
 
   environment:
-    DYNAMODB_TABLE_NAME: ${env.DYNAMODB_TABLE_NAME}
-
+    ENV: ${opt:alias, self:provider.stage}
+    DYNAMODB_TABLE_NAME: ${env:DYNAMODB_TABLE_NAME}
 
 
 package:
@@ -60,6 +60,5 @@ functions:
   alarm-event:
     handler: handler/alarm_bot.eventHandler
     events:
-      - sns: arn:aws:sns:ap-northeast-2:572836591883:ipf-aws-alarm-bot
-      -
+      - sns: ${env:SNS_ARN}
 

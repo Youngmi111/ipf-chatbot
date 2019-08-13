@@ -1,12 +1,16 @@
 const chai = require('chai');
 const expect = chai.expect;
 const AlarmBot = require('../business_logic/alarm_bot');
+const Helper = require('../business_logic/helper');
 
 process.env.AWS_REGION = 'ap-northeast-2';
-process.env.GOOGLE_APPLICATION_CREDENTIALS = process.cwd() + '/auth.json';
 
-describe('AWS Alarm Bot', function() {
+describe('AWS Alarm Bot', async function() {
     const bot = new AlarmBot();
+
+    await Helper.setAuth('AWS_ALARM_BOT');
+
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = '/tmp/auth.json';
 
     const params = {
         'type': 'ADDED_TO_SPACE',
@@ -20,7 +24,6 @@ describe('AWS Alarm Bot', function() {
         } 
     };
 
-    /*/
     it('Add bot as a friend', async () => {
         await bot.listen(params, (message) => {
             console.log(message);
@@ -33,16 +36,12 @@ describe('AWS Alarm Bot', function() {
         });
         expect(register).is.not.false;
     });
-    /**/
 
     it('Send greeting', async () => {
-        bot.sendGreet(success => {
-            console.log(success);
-        });
+        const success = await bot.sendGreet();
+        expect(success).to.be.true;
     });
 
-
-    /*/
     it('Alarm occurs', async () => {
         const message = {
             "AlarmName": "TEST ALARM MESSAGE",
@@ -70,11 +69,10 @@ describe('AWS Alarm Bot', function() {
                 "TreatMissingData": "",
                 "EvaluateLowSampleCountPercentile": ""
             }
-        }
+        };
 
         bot.sendAlarmMessage(message, (success) => {
             console.log(success);
         });
     });
-    /**/
 });

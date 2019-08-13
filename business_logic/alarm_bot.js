@@ -61,20 +61,32 @@ ${ message_obj.AlarmDescription }
 * ${ message_obj.NewStateReason }`;
     }
 
-    sendAlarmMessage(sns, callback) {
-        const message = {
-            'text': this.generateMessage(sns),
-        };
+    sendAlarmMessage(sns) {
+        return new Promise((resolve, reject) => {
+            const message = {
+                'text': this.generateMessage(sns),
+            };
 
-        this.send(message, callback);
+            this.send(message).then(success => {
+                resolve(success);
+            }).catch(err => {
+                reject(err);
+            });
+        });
     }
 
-    sendGreet(callback) {
-        this.greet().then(message => {
-            this.send(message, callback);
+    sendGreet() {
+        return new Promise((resolve, reject) => {
+            this.greet().then(message => {
+                this.send(message).then(success => {
+                    resolve(success);
+                }).catch(err => {
+                    reject(err);
+                });
 
-        }).catch(err => {
-            callback(false);
-        })
+            }).catch(err => {
+                reject(err);
+            })
+        });
     }
 };

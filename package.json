@@ -4,8 +4,8 @@
   "description": "Bots for iPF Hangouts Chat",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy:dev": "DYNAMODB_TABLE_NAME=ipf-test-chatbot sls deploy --alias=dev --verbose",
-    "deploy:prod": "DYNAMODB_TABLE_NAME=chatbots sls deploy --alias=prod --verbose"
+    "deploy:dev": "DYNAMODB_TABLE_NAME=ipf-test-chatbot SNS_ARN=arn:aws:sns:ap-northeast-2:572836591883:ipf-aws-alarm-test-bot sls deploy --alias=dev --verbose",
+    "deploy:prod": "DYNAMODB_TABLE_NAME=chatbots SNS_ARN=arn:aws:sns:ap-northeast-2:572836591883:ipf-aws-alarm-bot sls deploy --alias=prod --verbose"
   },
   "author": "klee@iportfolio.co.kr",
   "license": "ISC",

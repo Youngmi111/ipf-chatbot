@@ -43,7 +43,7 @@ class ChatbotReceiver {
 
     add(space_id, user_name) {
         const params = {
-            'TableName': 'chatbots',
+            'TableName': process.env.DYNAMODB_TABLE_NAME,
             'Item': {
                 'bot_id': {
                     'S': this.bot_id,
@@ -70,7 +70,7 @@ class ChatbotReceiver {
 
     delete(space_id) {
         const params = {
-            'TableName': 'chatbots',
+            'TableName': process.env.DYNAMODB_TABLE_NAME,
             'Key': {
                 'bot_id': {
                     'S': this.bot_id,
@@ -157,35 +157,37 @@ module.exports = class {
     generateMessage(message_obj) {
     }
 
-    send(req_body, callback) {
-        this.receiver.get().then(async (space_ids) => {
-            const auth = await google.auth.getClient({
-                scopes: ['https://www.googleapis.com/auth/chat.bot']
-            });
+    send(req_body) {
+        return new Promise((resolve, reject) => {
+            this.receiver.get().then(async (space_ids) => {
+                const auth = await google.auth.getClient({
+                    scopes: ['https://www.googleapis.com/auth/chat.bot']
+                });
 
-            const chat = google.chat('v1');
+                const chat = google.chat('v1');
 
-            let tasks = [];
+                let tasks = [];
 
-            for (const space_id of space_ids) {
-                tasks.push(chat.spaces.messages.create({
-                    auth,
-                    'parent': space_id,
-                    'requestBody': req_body,
-                }));
-            }
+                for (const space_id of space_ids) {
+                    tasks.push(chat.spaces.messages.create({
+                        auth,
+                        'parent': space_id,
+                        'requestBody': req_body,
+                    }));
+                }
 
-            Promise.all(tasks).then(data => {
-                callback(true);
+                Promise.all(tasks).then(data => {
+                    resolve(true);
+
+                }).catch(err => {
+                    console.error(err);
+                    reject(err);
+                });
 
             }).catch(err => {
                 console.error(err);
-                callback(false);
+                reject(err);
             });
-
-        }).catch(err => {
-            console.error(err);
-            callback(false);
         });
     }
 };

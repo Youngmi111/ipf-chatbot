@@ -1,7 +1,6 @@
 'use strict';
 
-const S3 = require('aws-sdk').S3;
-
+const Helper = require('../business_logic/helper');
 const AlarmBot = require('../business_logic/alarm_bot');
 
 const response = {
@@ -19,23 +18,38 @@ module.exports.listenHandler = (event, context, callback) => {
   });
 };
 
-module.exports.eventHandler = (event, context, callback) => {
-  process.env.GOOGLE_APPLICATION_CREDENTIALS = process.cwd() + '/auth.json';
+module.exports.eventHandler = async (event, context) => {
+  let res_body = {};
 
-  const sns = JSON.parse(event.Records[0].Sns.Message);
+  try {
+    await Helper.setAuth('AWS_ALARM_BOT');
 
-  const done = success => {
-    response.body = JSON.stringify({
-      success
-    });
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = '/tmp/auth.json';
 
-    callback(null, response);
-  };
+    const sns = JSON.parse(event.Records[0].Sns.Message);
 
-  if (sns.hasOwnProperty('AlarmDescription')) {
-    server.sendAlarmMessage(sns, done);
-    
-  } else {
-    server.sendGreet(done);
+    let success = false;
+
+    if (sns.hasOwnProperty('AlarmDescription')) {
+      success = await server.sendAlarmMessage(sns);
+
+    } else {
+      success = await server.sendGreet();
+    }
+
+    if (success) response.statusCode = 200;
+    res_body = {
+      success,
+    };
+
+  } catch (err) {
+    console.log(err.message);
+    res_body = {
+      'message': err.message,
+    }
   }
+
+  response.body = JSON.stringify(res_body);
+
+  return response;
 };
