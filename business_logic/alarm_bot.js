@@ -37,21 +37,34 @@ module.exports = class extends ChatBotServer {
         };
     }
 
-    generateMessage(message_obj) {
-        const from_eb = message_obj.Trigger.Namespace == 'AWS/ElasticBeanstalk';
-        const from = from_eb ? message_obj.Trigger.Dimensions[0].name : message_obj.AlarmName;
+    getAlarmOccurringDatetime(timestamp) {
+        return new Date(timestamp).toLocaleString('ko-KR', {'timeZone': 'Asia/Seoul'})
+    }
 
+    generateMessageForUserJourney(message, datetime) {
+        const links = message.NewStateReason.map(link => {
+            return '* ' + link;
+        }).join("\n");
+
+        return `*${ message.AlarmName } 알람이 발생했습니다.*
+        
+[Time]
+${ this.getAlarmOccurringDatetime(datetime) }
+
+[Summary]
+${ message.AlarmDescription }
+
+[Details]
+${ links }`;
+    }
+
+    generateMessage(message_obj) {
         const unit = message_obj.Trigger.Unit ? message_obj.Trigger.Unit : '';
         
-        const timestamp = new Date(message_obj.StateChangeTime);
-        const occurring_at = timestamp.toLocaleString('ko-KR', {
-        'timeZone': 'Asia/Seoul',
-        });
-
-        return `*${ from }${ from_eb ? '에서' : ''} 알람이 발생했습니다.*
+        return `*${ message_obj.AlarmName } 알람이 발생했습니다.*
 
 [Time]
-${ occurring_at }
+${ this.getAlarmOccurringDatetime(message_obj.StateChangeTime) }
 
 [Summary]
 ${ message_obj.AlarmDescription }
@@ -61,10 +74,47 @@ ${ message_obj.AlarmDescription }
 * ${ message_obj.NewStateReason }`;
     }
 
-    sendAlarmMessage(sns) {
+    getFormattedMessage(message, subject, timestamp) {
+        const trigger_from = message.Trigger.Namespace;
+
+        if (trigger_from.includes('/UserJourney')) {
+            if (subject.includes('FAILED')) {
+                return this.generateMessageForUserJourney(message, timestamp);
+            }
+
+            return false;
+        }
+
+        return this.generateMessage(message);
+    }
+
+    async sendMessage(sns) {
+        const subject = sns.Subject;
+        const timestamp = sns.Timestamp;
+        const message = JSON.parse(sns.Message);
+
+        let success = false;
+
+        if (message.hasOwnProperty('AlarmDescription')) {
+            const formatted_message = this.getFormattedMessage(message, subject, timestamp);
+
+            if (formatted_message !== false) {
+                success = await this.sendAlarmMessage(formatted_message);
+            } else {
+                success = true;
+            }
+
+        } else {
+            success = await this.sendGreet();
+        }
+
+        return success;
+    }
+
+    sendAlarmMessage(text) {
         return new Promise((resolve, reject) => {
             const message = {
-                'text': this.generateMessage(sns),
+                text,
             };
 
             this.send(message).then(success => {

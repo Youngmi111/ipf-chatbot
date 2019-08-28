@@ -26,16 +26,7 @@ module.exports.eventHandler = async (event, context) => {
 
     process.env.GOOGLE_APPLICATION_CREDENTIALS = '/tmp/auth.json';
 
-    const sns = JSON.parse(event.Records[0].Sns.Message);
-
-    let success = false;
-
-    if (sns.hasOwnProperty('AlarmDescription')) {
-      success = await server.sendAlarmMessage(sns);
-
-    } else {
-      success = await server.sendGreet();
-    }
+    let success = await server.sendMessage(event.Records[0].Sns);
 
     if (success) response.statusCode = 200;
     res_body = {
