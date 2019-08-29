@@ -10,12 +10,24 @@ const response = {
 
 const server = new AlarmBot();
 
-module.exports.listenHandler = (event, context, callback) => {
-  server.listen(JSON.parse(event.body), (message) => {
-    response.body = JSON.stringify(message);
+module.exports.listenHandler = async (event, context) => {
+  let res_body = {};
 
-    callback(null, response);
-  });
+  try {
+    await Helper.setAuth('AWS_ALARM_BOT');
+
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = '/tmp/auth.json';
+    res_body = await server.listen(JSON.parse(event.body));
+
+  } catch (err) {
+    res_body = {
+      'text': err.message,
+    };
+  }
+
+  response.body = JSON.stringify(res_body);
+
+  return response;
 };
 
 module.exports.eventHandler = async (event, context) => {

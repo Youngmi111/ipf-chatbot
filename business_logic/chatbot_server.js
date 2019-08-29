@@ -110,47 +110,50 @@ module.exports = class {
         };
     }
 
-    respondToUsersMessage(req_body, callback) {
-        this.receiver.add(req_body.space.name, req_body.user.displayName).then(success => {
-            callback({
+    async respondToUsersMessage(req_body) {
+        try {
+            await this.receiver.add(req_body.space.name, req_body.user.displayName);
+            return {
                 'text': this.MESSAGE.MESSAGE,
-            });
-        }).catch(err => {
-            console.error(err);
-            callback({
+            };
+
+        } catch (err) {
+            return {
                 'text': this.MESSAGE['MESSAGE--FAILED'],
-            });
-        });
+            };
+        }
     }
 
-    listen(req_body, callback) {
+    async respondToCardClicked(req_body) {
+    }
+
+    async listen(req_body) {
         switch(req_body.type) {
             case 'ADDED_TO_SPACE':
-                this.receiver.add(req_body.space.name, req_body.user.displayName).then(success => {
-                    callback({
+                try {
+                    await this.receiver.add(req_body.space.name, req_body.user.displayName);
+                    return {
                         'text': this.MESSAGE.ADDED_TO_SPACE
-                    });
-                }).catch(err => {
-                    console.error(err);
-                    callback({
-                        'text': this.MESSAGE['ADDED_TO_SPACE--FAILED']
-                    });
-                });
-                break;
-            
-            case 'REMOVED_FROM_SPACE':
-                this.receiver.delete(req_body.space.name).then(success => {
-                    callback({});
+                    };
 
-                }).catch(err => {
-                    console.error(err);
-                    callback({});
-                });
-                break;
+                } catch (err) {
+                    return {
+                        'text': this.MESSAGE['ADDED_TO_SPACE--FAILED']
+                    };
+                }
+
+            case 'REMOVED_FROM_SPACE':
+                try {
+                    await this.receiver.delete(req_body.space.name);
+
+                } catch (err) {}
+                return {};
 
             case 'MESSAGE':
-                this.respondToUsersMessage(req_body, callback);
-                break;
+                return await this.respondToUsersMessage(req_body);
+
+            case 'CARD_CLICKED':
+                return await this.respondToCardClicked(req_body);
         }
     }
 
