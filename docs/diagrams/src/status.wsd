@@ -12,7 +12,8 @@ box "Google"
 end box
 
 box "iPF AWS"
-    actor "AWS CloudWatch" as alarm
+    participant "AWS CloudWatch\nor Integrated apps" as alarm
+    participant "AWS SNS" as sns
     participant server
     participant db
 end box
@@ -37,7 +38,8 @@ return Send the message
 end
 
 group If alarm occurs
-alarm -> server: Execute the function via SNS
+alarm -> sns: Publish a message
+sns -> server: Execute the function via SNS
 activate server
 server -> server: Parse the alarm message
 activate server
@@ -48,6 +50,7 @@ deactivate server
 server -> server: Authenticate with the private key and Google API Client\nto use Google API
 server -> server: Generate messages for all the space ids
 server -> bot: the messages
+deactivate server
 activate bot
 bot -> chat
 activate chat

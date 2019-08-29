@@ -5,7 +5,7 @@
 
 ## How iPF Chat Bot works
 
-![](docs/diagrams/out/status/status.png)
+![](docs/diagrams/out/status.png)
 __Figure 1. iPF AWS Alarm Bot의 Activity Diagram__
 
 ## 구성 요소
@@ -17,6 +17,8 @@ __Figure 1. iPF AWS Alarm Bot의 Activity Diagram__
 * 대화 내용 검색, 수정 및 삭제가 가능하다.
 * Bot, Webhook 연동 등 신규 기능을 지원한다.
 행아웃 챗 이용시 행아웃 클래식에서 이루어졌던 개인간 대화는 별도의 이전 작업 없이 이용 가능하나, 클래식에서 이용중이던 Group 대화는 이전되지 않는다.
+
+2019년 8월 사내 메신져를 행아웃 클래식에서 행아웃 챗으로 변경했다.
 
 ### Google Chat API
 Google Hangouts Chat에서 Bot 지원을 위해 사용하는 API로, 개인 또는 그룹과 Bot간의 메시지 송수신을 가능하게 한다. 자세한 내용은 [Google에서 제공하는 개발 문서](https://developers.google.com/hangouts/chat/) 참고 바람.
@@ -56,7 +58,9 @@ API Gateway로의 요청 또는 SNS를 통해 실행되며, 수신한 이멘트�
 
 #### DynamoDB
 봇을 구독하는 사용자의 정보를 기록하는 data storage다. 저장된 정보는 봇이 사용자에게 먼저 메시지를 보내고자 할 경우 이용된다.
-* Table name: chatbots
+* Table name: 
+  * Test 환경: ipf-test-chatbot
+  * Prod 환경: chatbots
 * Keys
   * Partition key: bot_id
   * Sort key: space_id   
@@ -65,13 +69,21 @@ API Gateway로의 요청 또는 SNS를 통해 실행되며, 수신한 이멘트�
 ## How to send a message to users via the bot
 
 ### iPF AWS Alarm Bot
-AWS SNS Topic(ipf-aws-alarm-bot, `arn:aws:sns:ap-northeast-2:572836591883:ipf-aws-alarm-bot
-`)으로 아래와 같은 형식의 메시지를 Publish한다.
+1. 행아웃 챗에 알람봇을 친구로 추가한다.
+  * prod: `iPF AWS Alarm Bot`
+  * dev: `iPF AWS Alarm Test Bot`
+2. 특정 조건(알람) 발생시 AWS SNS Topic으로 아래와 같은 형식의 메시지를 Publish 하도록 연동 서비스를 개발한다.
+각 환경별 SNS Topic ARN은 아래와 같다;
+  * prod: ipf-aws-alarm-bot(`arn:aws:sns:ap-northeast-2:572836591883:ipf-aws-alarm-bot
+`)
+  * dev: ipf-aws-alarm-test-bot(`arn:aws:sns:ap-northeast-2:572836591883:ipf-aws-alarm-test-bot
+`)
 
 ~~~ json
 {
     "AlarmName": "알람의 이름. CloudWatch에서 자동 생성된 메시지가 아닐 경우, 이 내용이 맨 첫줄에 표시된다. e.g., {AlarmName} Alarm이 발생했습니다.",
     "StateChangeTime": "알람이 발생한 시간. ISO8601 포맷 e.g., 2018-05-22T20:38:49.939+0000",
+    "AlarmDescription": "알람에 대한 설명. summary에 해당",
     "NewStateReason": "알람이 발생한 원인",
     "Trigger": {
         "Namespace": "Alarm이 발생한 AWS 리소스의 네임 스페이스 e.g., AWS/ElasticBeanstalk",
@@ -87,7 +99,22 @@ AWS SNS Topic(ipf-aws-alarm-bot, `arn:aws:sns:ap-northeast-2:572836591883:ipf-aw
 }
 ~~~
 
-**Notes** CloudWatch에서 발송하는 알람일 경우 아래 메시지는 포맷에 맞게 자동으로 생성된다. 커스텀한 메시지일 경우에 아래 모든 항목이 누락되지 않도록 주의한다.
+**Notes** CloudWatch에서 발송하는 알람일 경우 아래 메시지는 포맷에 맞게 자동으로 생성된다. 커스텀한 메시지일 경우에 위의 모든 항목이 누락되지 않도록 주의한다.
+
+#### iPF AWS Alarm Bot 연동
+현재 알람봇과 연동된 서비스는 아래와 같다.
+
+##### READING & Web Application (Production)
+AWS Elastic Beanstalk을 이용하여 프로비저닝 되는 어플리케이션에 AWS CloudWatch Alarm을 생성, 설정하는 스크립트를 포함시켜 배포한다.
+웹 어플리케이션의 Healthy Host, CPU Utilization, Memory Utilization, (Load Balancer를 사용하는 어플리케이션일 경우) Latency, HTTP 5xx 에러 수가 모니터링의 대상이 되며, 기준 시간 동안 기준치 이상의 모니터링 지표(Metric)가 확인 될 경우 알람봇을 통해 메시지를 발송한다.
+자세한 내용은 [[AWS Elastic Beanstalk Extensions for iPF AWS Alarm Bot]] 참고 바람
+
+##### API Monitoring App
+[READING & API Monitoring Coverage](https://docs.google.com/spreadsheets/d/1c4z2LrqESTSs2y93GxguFSS4DiFfm8LJrhvOZlRXZPc/edit#gid=1634882828) 참고 바람
+
+##### User Journey Testing App
+[Katalon](https://www.katalon.com/)을 [Jenkins](https://jenkins.io)와 연동하여, 미리 작성한 User Journey test suites를 10분 간격으로 수행하며, 테스트 결과를 알람봇에 전송한다. 알람봇은 테스트 결과를 확인하여 결과가 실패일 경우에만 사용자에게 메시지를 발송한다.
+[테스팅 앱 바로가기](http://health.readingn.com:8828)
 
 ## References
 * [Google API Nodejs Client](https://github.com/googleapis/google-api-nodejs-client)
