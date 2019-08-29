@@ -1,8 +1,9 @@
 const axios = require('axios');
 
-const ChatBotServer = require('./chatbot_server');
+const Util = require('./util');
+const ChatbotServer = require('./chatbot_server');
 
-module.exports = class extends ChatBotServer {
+module.exports = class extends ChatbotServer {
     constructor() {
         super('AWS_ALARM_BOT');
     }
@@ -37,10 +38,6 @@ module.exports = class extends ChatBotServer {
         };
     }
 
-    getAlarmOccurringDatetime(timestamp) {
-        return new Date(timestamp).toLocaleString('ko-KR', {'timeZone': 'Asia/Seoul'})
-    }
-
     generateMessageForUserJourney(message, datetime) {
         const links = message.NewStateReason.map(link => {
             return '* ' + link;
@@ -49,7 +46,7 @@ module.exports = class extends ChatBotServer {
         return `*${ message.AlarmName } 알람이 발생했습니다.*
         
 [Time]
-${ this.getAlarmOccurringDatetime(datetime) }
+${ Util.convertUTCTimeToLocalTime(datetime) }
 
 [Summary]
 ${ message.AlarmDescription }
@@ -64,7 +61,7 @@ ${ links }`;
         return `*${ message_obj.AlarmName } 알람이 발생했습니다.*
 
 [Time]
-${ this.getAlarmOccurringDatetime(message_obj.StateChangeTime) }
+${ Util.convertUTCTimeToLocalTime(message_obj.StateChangeTime) }
 
 [Summary]
 ${ message_obj.AlarmDescription }
@@ -98,11 +95,9 @@ ${ message_obj.AlarmDescription }
         if (message.hasOwnProperty('AlarmDescription')) {
             const formatted_message = this.getFormattedMessage(message, subject, timestamp);
 
-            if (formatted_message !== false) {
-                success = await this.sendAlarmMessage(formatted_message);
-            } else {
-                success = true;
-            }
+            if (formatted_message === false) return true;
+
+            success = await this.sendAlarmMessage(formatted_message);
 
         } else {
             success = await this.sendGreet();
