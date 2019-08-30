@@ -100,7 +100,7 @@ module.exports = class extends ChatbotServer {
         let details = '';
 
         if (trigger_from.includes('/UserJourney')) {
-            if (!subject.includes('FAILED')) return false;
+            if (!subject.includes('FAILURE')) return false;
 
             time = Util.convertUTCTimeToLocalTime(timestamp);
             details = message.NewStateReason.map(link => {
@@ -194,8 +194,6 @@ module.exports = class extends ChatbotServer {
 
         const pray = String.fromCodePoint(0x1F64F);
         let final_message = `${ pray } ${ pray } ${ pray }`;
-
-        let announce = false;
 
         try {
             const alarm = await this.getHistory(alarm_name);
