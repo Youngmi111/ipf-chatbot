@@ -38,7 +38,14 @@ module.exports.eventHandler = async (event, context) => {
 
     process.env.GOOGLE_APPLICATION_CREDENTIALS = '/tmp/auth.json';
 
-    let success = await server.sendMessage(event.Records[0].Sns);
+    let success = false;
+
+    if (event.hasOwnProperty('Records')) {
+      success = await server.sendMessage(event.Records[0].Sns);
+
+    } else {
+      success = await this.sendGreet();
+    }
 
     if (success) response.statusCode = 200;
     res_body = {

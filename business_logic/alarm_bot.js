@@ -136,30 +136,23 @@ module.exports = class extends ChatbotServer {
         const timestamp = sns.Timestamp;
         const message = JSON.parse(sns.Message);
 
-        let success = false;
+        if (!message.hasOwnProperty('AlarmDescription')) return false;
 
-        if (message.hasOwnProperty('AlarmDescription')) {
-            const alarm = await this.getHistory(message.AlarmName);
+        const alarm = await this.getHistory(message.AlarmName);
 
-            if (alarm !== false && this.isMutedAlarm(alarm)) return true;
+        if (alarm !== false && this.isMutedAlarm(alarm)) return true;
 
-            const formatted_message = this.getFormattedMessage(message, subject, timestamp);
+        const formatted_message = this.getFormattedMessage(message, subject, timestamp);
 
-            if (formatted_message === false) return true;
+        if (formatted_message === false) return true;
 
-            this.history.update({
-                'mute_until': {
-                    'S': new Date().toISOString(),
-                },
-            });
+        this.history.update({
+            'mute_until': {
+                'S': new Date().toISOString(),
+            },
+        });
 
-            success = await this.sendAlarmMessage(formatted_message);
-
-        } else {
-            success = await this.sendGreet();
-        }
-
-        return success;
+        return await this.sendAlarmMessage(formatted_message);
     }
 
     sendAlarmMessage(message) {
