@@ -9,8 +9,11 @@ const Util = {
         }));
     },
 
-    convertUTCTimeToLocalTime(utc_time, timezone = 'Asia/Seoul') {
-        return new Date(utc_time).toLocaleString('ko-KR', {'timeZone': timezone});
+    convertUTCTimeToLocalTime(utc_time, hour12 = true, timezone = 'Asia/Seoul') {
+        return new Date(utc_time).toLocaleString('ko-KR', {
+            'timeZone': timezone,
+            hour12,
+        });
     },
 };
 

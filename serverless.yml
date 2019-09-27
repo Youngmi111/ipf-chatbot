@@ -6,7 +6,6 @@ provider:
   runtime: nodejs10.x
   region: ap-northeast-2
   profile: ipf
-  stackName: ipf-chatbot-stack
   apiName: ipf-chatbot-api
   memorySize: 256
   stage: dev
@@ -26,16 +25,20 @@ provider:
   role: arn:aws:iam::572836591883:role/ipf-chatbot
 
   environment:
-    ENV: ${opt:alias, self:provider.stage}
+    ENV: ${env:NODE_ENV, self:provider.stage}
     DYNAMODB_TABLE_NAME: ${env:DYNAMODB_TABLE_NAME}
+    HEALTH_DATA_URL: ${env:HEALTH_DATA_URL}
 
 
 package:
   individually: true
   exclude:
     - .nvmrc
+    - .idea/**
     - README.md
+    - health_methods.json
     - package*.json
+    - auth.json
     - node_moduels/**
     - handler/**
     - business_logic/**
@@ -61,4 +64,16 @@ functions:
     handler: handler/alarm_bot.eventHandler
     events:
       - sns: ${env:SNS_ARN}
+      - schedule: cron(0 1 ? * MON *)
 
+  health-listen:
+    handler: handler/health_bot.listenHandler
+    events:
+      - http:
+          path: ipf-health
+          method: post
+
+  health-event:
+    handler: handler/health_bot.eventHandler
+    events:
+      - schedule: cron(55 0-9 ? * MON-FRI *)
