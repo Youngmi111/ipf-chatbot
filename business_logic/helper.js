@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const fs = require('fs');
+const Holidays = require('date-holidays');
 
 const Util = require('./util');
 
@@ -26,6 +27,12 @@ const Helper = {
             }).pipe(auth_file);
         });
     },
+
+    isWorkingDay(test = '') {
+        const hd = new Holidays('KR');
+        const now = test.length > 0 ? new Date(test) : new Date();
+        return hd.isHoliday(now) === false;
+    }
 };
 
 Helper.DynamoDB = (() => {
