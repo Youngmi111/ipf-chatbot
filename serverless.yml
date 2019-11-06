@@ -25,9 +25,10 @@ provider:
   role: arn:aws:iam::572836591883:role/ipf-chatbot
 
   environment:
-    ENV: ${env:NODE_ENV, self:provider.stage}
+    ENV: ${env:NODE_ENV, opt:alias}
     DYNAMODB_TABLE_NAME: ${env:DYNAMODB_TABLE_NAME}
     HEALTH_DATA_URL: ${env:HEALTH_DATA_URL}
+    CASH_DISBURSEMENT_URL: ${env:CASH_DISBURSEMENT_URL}
 
 
 package:
@@ -77,3 +78,15 @@ functions:
     handler: handler/health_bot.eventHandler
     events:
       - schedule: cron(55 0-9 ? * MON-FRI *)
+
+  youngmi-listen:
+    handler: handler/youngmi_bot.listenHandler
+    events:
+        - http:
+          path: ipf-youngmi
+          method: post
+
+  youngmi-event:
+    handler: handler/youngmi_bot.eventHandler
+    events:
+      - schedule: cron(0 1 ? * MON-FRI *)
