@@ -67,8 +67,7 @@ module.exports = class extends ChatbotServer {
 
         const readable_deadline = `${ (deadline_date.getMonth() + 1) }/${ deadline_date.getDate() }(${ Helper.Date.DAY[deadline_date.getDay()] })`;
 
-        return `
-*${ last_month.getFullYear() }년 ${ (last_month.getMonth() + 1) }월분 지출결의서 제출하실 분들은 ${ readable_deadline }까지 ymcho에게 제출해 주시기 바랍니다.*
+        return `*${ last_month.getFullYear() }년 ${ (last_month.getMonth() + 1) }월분 지출결의서 제출하실 분들은 ${ readable_deadline }까지 ymcho에게 제출해 주시기 바랍니다.*
 
 * 제출일정 : ${ readable_deadline }  
 * 그룹리더 서명 받고 제출하기
@@ -77,6 +76,36 @@ module.exports = class extends ChatbotServer {
 3) 소속 그룹 리더의 확인 및 서명을 받고 제출 바랍니다.
 
 ${ process.env.CASH_DISBURSEMENT_URL }`;
+    }
+
+    generateMessageForPayday(now = new Date()) {
+        let payday_datetime = this.getPayday(now);
+
+        if (new Date(payday_datetime).getDate() < now.getDate()) {
+            const next_month = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            payday_datetime = this.getPayday(next_month);
+        }
+
+        let payday = new Date(payday_datetime);
+        const readable_payday = `${ payday.getFullYear() }년 ${ (payday.getMonth() + 1) }월 ${ payday.getDate() }일 ${ Helper.Date.DAY[payday.getDay()]}요일`;
+
+        let message = '';
+
+        const one_day = 60 * 60 * 24 * 1000;
+        payday = new Date(payday_datetime + one_day - 1000); // 23시 59분 59초까지 월급날
+
+        if (payday.getTime() - now.getTime() < one_day) {
+            const party = String.fromCodePoint(0x1F973);
+            message = `바로 오늘!!! 소리질뤄!!!!!!!!! ${ party }`;
+
+        } else {
+            const remain_days = Math.floor((payday.getTime() - now.getTime()) / one_day);
+
+            message = `다음 월급날은 ${ readable_payday }입니다.
+월급날까지 ${ remain_days }일 남았습니다! 힘을 내세여!!!!`;
+        }
+
+        return message;
     }
 
     generateMessage(event) {
@@ -112,5 +141,28 @@ ${ process.env.CASH_DISBURSEMENT_URL }`;
 
             });
         });
+    }
+
+    containsSalaryQuestion(message) {
+        return /(월급|월급날|급여일)/.test(message) && /(며칠|몇일|몇 일|언제|얼마나|ㅇㅈ)/.test(message);
+    }
+
+    async respondToUsersMessage(req_body) {
+        try {
+            await this.receiver.add(req_body.space.name, req_body.user.displayName);
+
+            let response = this.MESSAGE.MESSAGE;
+
+            if (this.containsSalaryQuestion(req_body.message.text)) response = this.generateMessageForPayday();
+
+            return {
+                'text': response,
+            };
+
+        } catch (err) {
+            return {
+                'text': this.MESSAGE['MESSAGE--FAILED'],
+            };
+        }
     }
 };

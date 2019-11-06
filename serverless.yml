@@ -82,7 +82,7 @@ functions:
   youngmi-listen:
     handler: handler/youngmi_bot.listenHandler
     events:
-        - http:
+      - http:
           path: ipf-youngmi
           method: post
 
