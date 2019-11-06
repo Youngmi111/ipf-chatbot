@@ -34,6 +34,14 @@ module.exports.listenHandler = async (event, context) => {
 module.exports.eventHandler = async (event, context) => {
     let res_body = {};
 
+    if (Helper.Date.isWorkingDay() === false) {
+        response.body = JSON.stringify({
+            'message': 'It is not working day.',
+        });
+
+        return response;
+    }
+
     try {
         await Helper.setAuth(bot_id);
 

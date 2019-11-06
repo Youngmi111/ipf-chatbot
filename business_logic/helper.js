@@ -27,12 +27,24 @@ const Helper = {
             }).pipe(auth_file);
         });
     },
+};
 
-    isWorkingDay(test = '') {
+Helper.Date = {
+    DAY: ['일', '월', '화', '수', '목', '금', '토', '일'],
+
+    isWeekday(date) {
+        const day = date.getDay();
+        return day > 0 && day < 6;
+    },
+
+    isWorkingDay(now = Date.now()) {
+        const date = new Date(now);
+
+        if (!this.isWeekday(date)) return false;
+
         const hd = new Holidays('KR');
-        const now = test.length > 0 ? new Date(test) : new Date();
-        return hd.isHoliday(now) === false;
-    }
+        return hd.isHoliday(date) === false;
+    },
 };
 
 Helper.DynamoDB = (() => {
