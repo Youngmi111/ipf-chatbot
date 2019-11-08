@@ -147,13 +147,44 @@ ${ process.env.CASH_DISBURSEMENT_URL }`;
         return /(월급|월급날|급여일)/.test(message) && /(며칠|몇일|몇 일|언제|얼마나|ㅇㅈ)/.test(message);
     }
 
+    needToAnnounce(message) {
+        return /^(\[인턴 일해라\])/.test(message);
+    }
+
+    sendManualAnnouncement(message) {
+        message = {
+            'text': message.replace('[인턴 일해라]', '').trim()
+        };
+
+        return new Promise(resolve => {
+            this.send(message).then(results => {
+                resolve(true);
+
+            }).catch(err => {
+                resolve(false);
+            });
+        });
+    }
+
     async respondToUsersMessage(req_body) {
         try {
             await this.receiver.add(req_body.space.name, req_body.user.displayName);
 
             let response = this.MESSAGE.MESSAGE;
+            const user_message = req_body.message.text;
 
-            if (this.containsSalaryQuestion(req_body.message.text)) response = this.generateMessageForPayday();
+            const for_announce = this.needToAnnounce(user_message);
+
+            if (for_announce) {
+                const result = await this.sendManualAnnouncement(user_message);
+
+                response = result ? '공지를 전달했습니다!' : '제가... 뭔가.... 실수를 한 것 같아요. 다시 한 번 메시지 주시겠어요?';
+
+            } else if (this.containsSalaryQuestion(user_message)) {
+                response = this.generateMessageForPayday();
+            }
+
+            if (for_announce === false) console.log(`[USER_MESSAGE][${ req_body.user.displayName }] ${ user_message }`);
 
             return {
                 'text': response,
