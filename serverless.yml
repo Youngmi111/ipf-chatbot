@@ -29,6 +29,7 @@ provider:
     DYNAMODB_TABLE_NAME: ${env:DYNAMODB_TABLE_NAME}
     HEALTH_DATA_URL: ${env:HEALTH_DATA_URL}
     CASH_DISBURSEMENT_URL: ${env:CASH_DISBURSEMENT_URL}
+    TZ: Asia/Seoul
 
 
 package:
