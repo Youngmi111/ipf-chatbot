@@ -10,7 +10,7 @@ const Util = {
     },
 
     convertUTCTimeToLocalTime(utc_time, hour12 = true, timezone = 'Asia/Seoul') {
-        return new Date(utc_time).toLocaleString('ko-KR', {
+        return new Date(utc_time).toLocaleString('en-US', {
             'timeZone': timezone,
             hour12,
         });
