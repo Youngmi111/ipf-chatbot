@@ -4,8 +4,8 @@
   "description": "Bots for iPF Hangouts Chat",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy:dev": "NODE_ENV=dev DYNAMODB_TABLE_NAME=ipf-test-chatbot SNS_ARN=arn:aws:sns:ap-northeast-2:572836591883:ipf-aws-alarm-test-bot HEALTH_DATA_URL=https://ipf-chatbot.s3.ap-northeast-2.amazonaws.com/health CASH_DISBURSEMENT_URL=https://docs.google.com/spreadsheets/d/1sctFiSBWogbW5x7vrSkmljoyePPn5zhNXXVUDwZW1Ks/edit#gid=7 sls deploy --alias=dev --verbose",
-    "deploy:prod": "NODE_ENV=prod DYNAMODB_TABLE_NAME=chatbots SNS_ARN=arn:aws:sns:ap-northeast-2:572836591883:ipf-aws-alarm-bot HEALTH_DATA_URL=https://ipf-chatbot.s3.ap-northeast-2.amazonaws.com/health CASH_DISBURSEMENT_URL=https://docs.google.com/spreadsheets/d/1sctFiSBWogbW5x7vrSkmljoyePPn5zhNXXVUDwZW1Ks/edit#gid=7 sls deploy --alias=prod --verbose"
+    "deploy:dev": "NODE_ENV=dev sls deploy --alias=dev --verbose",
+    "deploy:prod": "NODE_ENV=prod sls deploy --alias=prod --verbose"
   },
   "author": "klee@iportfolio.co.kr",
   "license": "ISC",
@@ -14,6 +14,7 @@
     "dotenv": "^8.2.0",
     "mocha": "^6.2.0",
     "serverless-aws-alias": "^1.7.2",
+    "serverless-dotenv-plugin": "^2.1.1",
     "serverless-offline": "^5.11.0",
     "serverless-plugin-include-dependencies": "^3.2.1"
   },

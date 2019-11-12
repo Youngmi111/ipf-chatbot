@@ -52,6 +52,7 @@ plugins:
   - serverless-plugin-include-dependencies
   - serverless-offline
   - serverless-aws-alias
+  - serverless-dotenv-plugin
 
 
 functions:
