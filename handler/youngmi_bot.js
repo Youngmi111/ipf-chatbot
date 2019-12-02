@@ -1,7 +1,7 @@
 'use strict';
 
 const Helper = require('../business_logic/helper');
-const YoungmiBot = require('../business_logic/youngmi_bot');
+const { YoungmiBot } = require('../business_logic/youngmi_bot');
 
 const response = {
     statusCode: 200,

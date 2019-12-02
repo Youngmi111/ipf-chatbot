@@ -90,5 +90,6 @@ functions:
 
   youngmi-event:
     handler: handler/youngmi_bot.eventHandler
+    timeout: 30
     events:
       - schedule: cron(0 1 ? * MON-FRI *)
