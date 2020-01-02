@@ -184,7 +184,7 @@ ${ process.env.CASH_DISBURSEMENT_URL }`;
     generateMessageForCashDisbursementDeadline(now = new Date()) {
         const last_month = new Date(now.getFullYear(), now.getMonth(), 0);
 
-        return `오늘은 *${ last_month.getFullYear() }년 ${ (last_month.getMonth() + 1) }월분 지출결의서 제출 마감일입니다.`;
+        return `오늘은 *${ last_month.getFullYear() }년 ${ (last_month.getMonth() + 1) }월분 지출결의서 제출 마감*일입니다.`;
     },
 
     generateMessageForPayday(now = new Date()) {
