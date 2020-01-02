@@ -186,36 +186,36 @@ ${ process.env.CASH_DISBURSEMENT_URL }`;
 
         return `오늘은 *${ last_month.getFullYear() }년 ${ (last_month.getMonth() + 1) }월분 지출결의서 제출 마감*일입니다.`;
     },
+    
+    getEventDateTime(currentDateTime, callback) {
+        let eventDateTime = callback(currentDateTime);
 
-    generateMessageForPayday(now = new Date()) {
-        let payday_datetime = this.getPayday(now);
-
-        if (new Date(payday_datetime).getDate() < now.getDate()) {
-            const next_month = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-            payday_datetime = this.getPayday(next_month);
+        if (new Date(eventDateTime).getDate() < currentDateTime.getDate()) {
+            const nextMonth = new Date(currentDateTime.getFullYear(), currentDateTime.getMonth() + 1, 1);
+            eventDateTime = callback(nextMonth);
         }
 
-        let payday = new Date(payday_datetime);
-        const readable_payday = `${ payday.getFullYear() }년 ${ (payday.getMonth() + 1) }월 ${ payday.getDate() }일 ${ Helper.Date.DAY[payday.getDay()]}요일`;
+        return eventDateTime;
+    },
+
+    generateMessageForPayday(now = new Date()) {
+        const paydayTime = this.getEventDateTime(now, this.getPayday);
+
+        const payday = new Date(paydayTime + Helper.Date.microSecondsForOneDay - 1000);
 
         let message = '';
 
-        const one_day = 60 * 60 * 24 * 1000;
-        payday = new Date(payday_datetime + one_day - 1000); // 23시 59분 59초까지 월급날
-
-        if (payday.getTime() - now.getTime() < one_day) {
+        if (Helper.Date.isDDay(now, payday)) {
             const party = String.fromCodePoint(0x1F973);
             message = `바로 오늘!!! 소리질뤄!!!!!!!!! ${ party }`;
 
         } else {
-            const remain_days = Math.floor((payday.getTime() - now.getTime()) / one_day);
-
-            message = `다음 월급날은 ${ readable_payday }입니다.
-월급날까지 ${ remain_days }일 남았습니다! 힘을 내세여!!!!`;
+            message = `다음 월급날은 ${ Helper.Date.getHumanReadableDateFromDatetime(payday) }입니다.
+월급날까지 ${ Helper.Date.getRemainingDays(now, payday) }일 남았습니다! 힘을 내세여!!!!`;
         }
 
         return message;
-    }
+    },
 };
 
 const Announcement = {

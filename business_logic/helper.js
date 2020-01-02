@@ -31,6 +31,7 @@ const Helper = {
 
 Helper.Date = {
     DAY: ['일', '월', '화', '수', '목', '금', '토', '일'],
+    microSecondsForOneDay: 60 * 60 * 24 * 1000,
 
     isWeekday(date) {
         const day = date.getDay();
@@ -44,6 +45,18 @@ Helper.Date = {
 
         const hd = new Holidays('KR');
         return hd.isHoliday(date) === false;
+    },
+
+    getHumanReadableDateFromDatetime(datetime) {
+        return `${ datetime.getFullYear() }년 ${ (datetime.getMonth() + 1) }월 ${ datetime.getDate() }일 ${ this.DAY[datetime.getDay()]}요일`;
+    },
+
+    getRemainingDays(currentDateTime, eventDateTime) {
+        return Math.floor((eventDateTime.getTime() - currentDateTime.getTime()) / this.microSecondsForOneDay);
+    },
+
+    isDDay(currentDateTime, eventDateTime) {
+        return eventDateTime.getTime() - currentDateTime.getTime() < this.microSecondsForOneDay;
     },
 };
 
