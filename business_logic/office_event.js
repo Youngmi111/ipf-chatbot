@@ -84,7 +84,8 @@ ${ process.env.CASH_DISBURSEMENT_URL }`;
             message = `다음 지출 결의 마감일은 ${ Helper.Date.getHumanReadableDateFromDatetime(cashDisbursement) }입니다.`;
         }
 
-        return message;
+        return `${ message }
+${ process.env.CASH_DISBURSEMENT_URL }`;
     },
 };
 
