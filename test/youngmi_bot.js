@@ -47,10 +47,10 @@ describe('payday', function() {
     });
 
     it ('payday (payday is weekday)', () => {
-        const now = new Date('1 January, 2020');
+        const now = new Date('11 December, 2019');
         const payday = Payday.getPayday(now);
 
-        // correct payday 2020/1/10
+        // correct payday 2020/2/10
         expect(new Date(payday).getDate()).to.be.equal(10);
     });
 
@@ -64,13 +64,24 @@ describe('payday', function() {
 });
 
 describe('message', function() {
-    it('correct message', () => {
+    it('message for cash disbursement notice', () => {
         const message = Payday.generateMessageForCashDisbursement();
+        console.log(message);
+    });
+
+    it('message for cash disbursement question', () => {
+        const now = new Date('3 January, 2020');
+        const message = Payday.generateMessageForCashDisbursementAnswer(now);
+        console.log(message);
+    });
+
+    it('message for payday', () => {
+        const now = new Date('11 January, 2020');
+        const message = Payday.generateMessageForPayday(now);
         console.log(message);
     })
 });
 
-/*/
 describe('send', function() {
     it('send message', async () => {
         process.env.GOOGLE_APPLICATION_CREDENTIALS = process.cwd() + '/auth.json';
@@ -78,4 +89,3 @@ describe('send', function() {
         await bot.sendNotifications();
     });
 });
-/**/
