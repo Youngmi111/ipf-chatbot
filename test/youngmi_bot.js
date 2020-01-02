@@ -6,6 +6,7 @@ const Util = require('../business_logic/util');
 const Helper = require('../business_logic/helper');
 const YoungmiBot = require('../business_logic/youngmi_bot');
 const OfficeEvent = require('../business_logic/office_event');
+const OfficialDocument = require('../business_logic/official_document');
 
 const bot = new YoungmiBot();
 
@@ -80,7 +81,12 @@ describe('message', function() {
         const now = new Date('11 January, 2020');
         const message = OfficeEvent.generateMessageForPayday(now);
         console.log(message);
-    })
+    });
+
+    it('message for documents', () => {
+        const request = '사무용품 신청';
+        const message = OfficialDocument.generateMessageForDocumentLink(request);
+    });
 });
 
 /*/

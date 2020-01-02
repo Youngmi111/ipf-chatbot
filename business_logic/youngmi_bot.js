@@ -1,6 +1,6 @@
-const Helper = require('./helper');
 const ChatbotServer = require('./chatbot_server');
 const OfficeEvent = require('./office_event');
+const OfficialDocument = require('./official_document');
 
 class YoungmiBot extends ChatbotServer {
     constructor() {
@@ -69,6 +69,10 @@ class YoungmiBot extends ChatbotServer {
         return /(지출 결의|지출결의|지결)/.test(message) && /(며칠|몇일|몇 일|언제)/.test(message);
     }
 
+    containsDocumentRequest(message) {
+        return /(휴가|연차|역량 개발비|자기 개발|자기 계발|자기개발|자기계발|구매|구입|비품|사무용품)/.test(message) && /(신청|신청서|양식|문서|링크|주소)/.test(message);
+    }
+
     needToAnnounce(message) {
         return /^(\[인턴 일해라\])/.test(message);
     }
@@ -108,6 +112,9 @@ class YoungmiBot extends ChatbotServer {
             } else if (this.containsCashDisbursementQuestion(user_message)) {
                 response = OfficeEvent.generateMessageForCashDisbursementAnswer();
 
+            } else if (this.containsDocumentRequest(user_message)) {
+                response = OfficialDocument.generateMessageForDocumentLink(user_message);
+
             }
 
             if (for_announce === false) console.log(`[USER_MESSAGE][${ req_body.user.displayName }] ${ user_message }`);
@@ -123,8 +130,6 @@ class YoungmiBot extends ChatbotServer {
         }
     }
 }
-
-
 
 const Announcement = {
 };
