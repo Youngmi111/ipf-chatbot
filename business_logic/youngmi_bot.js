@@ -1,43 +1,11 @@
 const Helper = require('./helper');
 const ChatbotServer = require('./chatbot_server');
+const OfficeEvent = require('./office_event');
 
 class YoungmiBot extends ChatbotServer {
     constructor() {
         super('iPF_ANNOUNCE_BOT');
     }
-
-    static getAvailableDate(datetime, find_in_past = true) {
-        let one_day = 60 * 60 * 24 * 1000;
-        if (find_in_past) one_day *= -1;
-
-        while (!Helper.Date.isWorkingDay(datetime)) {
-            datetime += one_day;
-        }
-
-        return datetime;
-    }
-
-    static getWorkingDay(since, days_before) {
-        while (days_before > 0) {
-            since -= 60 * 60 * 24 * 1000;
-
-            if (since === YoungmiBot.getAvailableDate(since)) days_before--;
-        }
-
-        return since;
-    }
-
-    static getTheFirstWorkingDayOfMonth(datetime = Date.now()) {
-        const now = new Date(datetime);
-
-        const first_day = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-
-        return this.getAvailableDate(first_day, false);
-    }
-
-    isTheFirstWorkingDayOfMonth(now = new Date()) {
-        return now.getDate() === new Date(YoungmiBot.getTheFirstWorkingDayOfMonth(now.getTime())).getDate();
-    };
 
     findEvents(forced) {
         let event = [];
@@ -47,7 +15,7 @@ class YoungmiBot extends ChatbotServer {
         if (this.isTheFirstWorkingDayOfMonth()) {
             event.push('CASH_DISBURSEMENT');
 
-        } else if (Payday.isDeadlineForTheCashDisbursement()) {
+        } else if (OfficeEvent.isDeadlineForTheCashDisbursement()) {
             event.push('IS_DEADLINE_FOR_CASH_DISBURSEMENT');
         }
 
@@ -59,11 +27,11 @@ class YoungmiBot extends ChatbotServer {
 
         switch (event) {
             case 'CASH_DISBURSEMENT':
-                message = Payday.generateMessageForCashDisbursement();
+                message = OfficeEvent.generateMessageForCashDisbursement();
                 break;
 
             case 'IS_DEADLINE_FOR_CASH_DISBURSEMENT':
-                message = Payday.generateMessageForCashDisbursementDeadline();
+                message = OfficeEvent.generateMessageForCashDisbursementDeadline();
                 break;
 
             default:
@@ -135,10 +103,10 @@ class YoungmiBot extends ChatbotServer {
                 response = result ? '공지를 전달했습니다!' : '제가... 뭔가.... 실수를 한 것 같아요. 다시 한 번 메시지 주시겠어요?';
 
             } else if (this.containsSalaryQuestion(user_message)) {
-                response = Payday.generateMessageForPayday();
+                response = OfficeEvent.generateMessageForPayday();
 
             } else if (this.containsCashDisbursementQuestion(user_message)) {
-                response = Payday.generateMessageForCashDisbursementAnswer();
+                response = OfficeEvent.generateMessageForCashDisbursementAnswer();
 
             }
 
@@ -156,97 +124,9 @@ class YoungmiBot extends ChatbotServer {
     }
 }
 
-const Payday = {
-    getPayday(now) {
-        const datetime = new Date(now.getFullYear(), now.getMonth(), 10).getTime();
-        return YoungmiBot.getAvailableDate(datetime);
-    },
 
-    getDeadlineForCashDisbursement(datetime = Date.now()) {
-        const payday = this.getPayday(new Date(datetime));
-        return YoungmiBot.getWorkingDay(payday, 5);
-    },
-
-    isDeadlineForTheCashDisbursement() {
-        const now = new Date();
-        return now.getDate() === new Date(this.getDeadlineForCashDisbursement()).getDate();
-    },
-
-    generateMessageForCashDisbursement() {
-        const deadline_date = new Date(this.getDeadlineForCashDisbursement());
-        const last_month = new Date(deadline_date.getFullYear(), deadline_date.getMonth(), 0);
-
-        const readable_deadline = `${ (deadline_date.getMonth() + 1) }/${ deadline_date.getDate() }(${ Helper.Date.DAY[deadline_date.getDay()] })`;
-
-        return `*${ last_month.getFullYear() }년 ${ (last_month.getMonth() + 1) }월분 지출결의서 제출하실 분들은 ${ readable_deadline }까지 ymcho에게 제출해 주시기 바랍니다.*
-
-* 제출일정 : ${ readable_deadline }  
-* 그룹리더 서명 받고 제출하기
-1) 기존 지출결의서 양식이 아닌 변경된 양식(링크)을 작성/출력하여
-2) 본인 서명
-3) 소속 그룹 리더의 확인 및 서명을 받고 제출 바랍니다.
-
-${ process.env.CASH_DISBURSEMENT_URL }`;
-    },
-
-    generateMessageForCashDisbursementDeadline(now = new Date()) {
-        const last_month = new Date(now.getFullYear(), now.getMonth(), 0);
-
-        return `오늘은 *${ last_month.getFullYear() }년 ${ (last_month.getMonth() + 1) }월분 지출결의서 제출 마감*일입니다.`;
-    },
-
-    getEventDateTime(currentDateTime, callback) {
-        let eventDateTime = callback(currentDateTime);
-
-        if (new Date(eventDateTime).getDate() < currentDateTime.getDate()) {
-            const nextMonth = new Date(currentDateTime.getFullYear(), currentDateTime.getMonth() + 1, 1);
-            eventDateTime = callback(nextMonth);
-        }
-
-        return eventDateTime;
-    },
-
-    generateMessageForPayday(now = new Date()) {
-        const paydayTime = this.getEventDateTime(now, this.getPayday.bind(this));
-
-        const payday = new Date(paydayTime + Helper.Date.microSecondsForOneDay - 1000);
-
-        let message = '';
-
-        if (Helper.Date.isDDay(now, payday)) {
-            const party = String.fromCodePoint(0x1F973);
-            message = `바로 오늘!!! 소리질뤄!!!!!!!!! ${ party }`;
-
-        } else {
-            message = `다음 월급날은 ${ Helper.Date.getHumanReadableDateFromDatetime(payday) }입니다.
-월급날까지 ${ Helper.Date.getRemainingDays(now, payday) }일 남았습니다! 힘을 내세여!!!!`;
-        }
-
-        return message;
-    },
-
-    generateMessageForCashDisbursementAnswer(now = new Date()) {
-        const cashDisbursementDatetime = this.getEventDateTime(now, this.getDeadlineForCashDisbursement.bind(this));
-
-        const cashDisbursement = new Date(cashDisbursementDatetime + Helper.Date.microSecondsForOneDay - 1000);
-
-        let message = '';
-
-        if (Helper.Date.isDDay(now, cashDisbursement)) {
-            const surprise = String.fromCodePoint(0x1F62E);
-            message = `바로 오늘!!! ${ surprise } 제출을 서둘러주세요.`;
-
-        } else {
-            message = `다음 지출 결의 마감일은 ${ Helper.Date.getHumanReadableDateFromDatetime(cashDisbursement) }입니다.`;
-        }
-
-        return message;
-    },
-};
 
 const Announcement = {
 };
 
-module.exports.YoungmiBot = YoungmiBot;
-
-module.exports.Payday = Payday;
+module.exports = YoungmiBot;

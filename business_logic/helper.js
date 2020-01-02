@@ -58,6 +58,36 @@ Helper.Date = {
     isDDay(currentDateTime, eventDateTime) {
         return eventDateTime.getTime() - currentDateTime.getTime() < this.microSecondsForOneDay;
     },
+
+    getAvailableDate(dateTime, findInPast = true) {
+        while (!this.isWorkingDay(dateTime)) {
+            dateTime += findInPast ? this.microSecondsForOneDay * -1 : this.microSecondsForOneDay;
+        }
+
+        return dateTime;
+    },
+
+    getWorkingDay(since, daysBefore) {
+        while (daysBefore > 0) {
+            since -= this.microSecondsForOneDay;
+
+            if (since === this.getAvailableDate(since)) daysBefore--;
+        }
+
+        return since;
+    },
+
+    getTheFirstWorkingDayOfMonth(dateTime = Date.now()) {
+        const now = new Date(dateTime);
+
+        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+        return this.getAvailableDate(firstDayOfMonth, false);
+    },
+
+    isTheFirstWorkingDayOfMonth(now = new Date()) {
+        return now.getDate() === new Date(this.getTheFirstWorkingDayOfMonth(now.getTime())).getDate();
+    },
 };
 
 Helper.DynamoDB = (() => {
