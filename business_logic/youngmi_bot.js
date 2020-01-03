@@ -1,4 +1,5 @@
 const ChatbotServer = require('./chatbot_server');
+const Helper = require('./helper');
 const OfficeEvent = require('./office_event');
 const OfficialDocument = require('./official_document');
 
@@ -12,7 +13,7 @@ class YoungmiBot extends ChatbotServer {
 
         if (forced === true) event.push('CASH_DISBURSEMENT');
 
-        if (this.isTheFirstWorkingDayOfMonth()) {
+        if (Helper.Date.isTheFirstWorkingDayOfMonth()) {
             event.push('CASH_DISBURSEMENT');
 
         } else if (OfficeEvent.isDeadlineForTheCashDisbursement()) {
