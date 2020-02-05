@@ -93,3 +93,9 @@ functions:
     timeout: 30
     events:
       - schedule: cron(0 1 ? * MON-FRI *)
+
+  docs-crawl:
+    handler: handler/document_crawler.googleDocsCrawler
+    timeout: 30
+    events:
+      - schedule: cron(0 0,5 ? * MON-FRI *)
