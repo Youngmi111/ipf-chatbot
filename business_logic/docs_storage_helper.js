@@ -10,7 +10,7 @@ module.exports = class {
 
         if (process.env.ENV == 'local') option.port = 9200;
 
-        this.client = ESClient.create();
+        this.client = ESClient.create(option);
     }
 
     checkIndiceExists() {
@@ -20,7 +20,7 @@ module.exports = class {
             return response.status === 200;
 
         }).catch(err => {
-            console.log(err.message);
+            console.log(err);
             return false;
         });
     }
@@ -46,7 +46,7 @@ module.exports = class {
             return response.acknowledged;
 
         }).catch(err => {
-            console.log(err.message);
+            console.log(err);
             return false;
         });
     }
@@ -84,6 +84,8 @@ module.exports = class {
     }
 
     async search(q) {
+        q = q.replace(/[\~`\!@#\$\%\^&\*\(\)\-_\+=\{\}\:;'"\?\/<>\,\.]/g, '');
+
         const keywords = q.split(' ').map(keyword => {
             return `*${ keyword.trim() }*`;
         });
@@ -98,6 +100,8 @@ module.exports = class {
         if (keywords.length > 1) {
             query.query_string.query += ` AND (${ keywords.splice(1).join(' OR ') })`;
         }
+
+        console.log(query);
 
         try {
             return await this.client.search({

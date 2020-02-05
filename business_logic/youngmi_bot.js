@@ -2,6 +2,7 @@ const ChatbotServer = require('./chatbot_server');
 const Helper = require('./helper');
 const OfficeEvent = require('./office_event');
 const OfficialDocument = require('./official_document');
+const Official101Doc = require('./official_guide');
 
 class YoungmiBot extends ChatbotServer {
     constructor() {
@@ -116,6 +117,13 @@ class YoungmiBot extends ChatbotServer {
             } else if (this.containsDocumentRequest(user_message)) {
                 response = OfficialDocument.generateMessageForDocumentLink(user_message);
 
+            } else {
+                const docs = await Official101Doc.findContents(user_message);
+
+                if (docs.length > 0) {
+                    const message = await Official101Doc.generateMessage(docs);
+                    return message;
+                }
             }
 
             if (for_announce === false) console.log(`[USER_MESSAGE][${ req_body.user.displayName }] ${ user_message }`);
