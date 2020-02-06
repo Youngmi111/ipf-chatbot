@@ -35,10 +35,11 @@ module.exports = class {
 
                 contentElement.paragraph.elements.forEach(pElement => {
                     if (pElement.hasOwnProperty('textRun')) {
-                        content = pElement.textRun.content;
+                        content = pElement.textRun.content.replace('<', '&lt;');
+                        content = content.replace('>', '&gt;');
 
                         if (pElement.textRun.textStyle.hasOwnProperty('link')) {
-                            content += ` ${ pElement.textRun.textStyle.link.url } `;
+                            content = `<a href="${ pElement.textRun.textStyle.link.url }">${ content }</a>`;
                         }
 
                         parsed.push(content);
