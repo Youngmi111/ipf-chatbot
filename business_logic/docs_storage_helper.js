@@ -98,7 +98,7 @@ module.exports = class {
         };
 
         if (keywords.length > 1) {
-            query.query_string.query += ` AND (${ keywords.splice(1).join(' OR ') })`;
+            query.query_string.query += ` OR ${ keywords.splice(1).join(' OR ') }`;
         }
 
         console.log(query);
