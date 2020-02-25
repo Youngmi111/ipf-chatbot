@@ -13,7 +13,7 @@ module.exports.googleDocsCrawler = async (event) => {
     process.env.GOOGLE_APPLICATION_CREDENTIALS = '/tmp/auth.json';
 
     try {
-        await Crawler.run(process.env.OFFICIAL_DOCS.split(','));
+        await Crawler.run(process.env.OFFICIAL_DOCS.split(','), Crawler.store);
 
     } catch (err) {
         response.statusCode = 400;

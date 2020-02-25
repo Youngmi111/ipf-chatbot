@@ -55,7 +55,7 @@ module.exports = class {
         const docId = `${ docData.headingId }@${ docData.docId }`;
         const opType = await this.checkDocExist(docId) ? 'index' : 'create';
 
-        return this.client.index({
+        return await this.client.index({
             index: this.DOC_INDICE_ID,
             id: docId,
             type: '_doc',
