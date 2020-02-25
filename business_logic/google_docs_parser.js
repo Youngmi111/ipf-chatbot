@@ -7,6 +7,7 @@ module.exports = class {
         this.SCOPE = 'https://www.googleapis.com/auth/documents.readonly';
         this.DOCUMENT_ID = documentId;
         this.CONTENT_ELEMENT_TYPE = ['paragraph', 'table'];
+        this.attachments = [];
     }
 
     isElementContainsContent(element) {
@@ -26,7 +27,6 @@ module.exports = class {
 
         if (this.isElementContainsContent(contentElement)) {
             if (contentElement.hasOwnProperty('paragraph')) {
-
                 if (this.isHeadingContent(contentElement.paragraph)) {
                     headingId = contentElement.paragraph.paragraphStyle.headingId;
                 }
@@ -42,6 +42,10 @@ module.exports = class {
                             content = `<a href="${ pElement.textRun.textStyle.link.url }">${ content }</a>`;
                         }
 
+                        parsed.push(content);
+
+                    } else if (pElement.hasOwnProperty('inlineObjectElement')) {
+                        content = `<img src="${ this.attachments[pElement.inlineObjectElement.inlineObjectId].imageProperties.contentUri }">`;
                         parsed.push(content);
                     }
                 });
@@ -84,11 +88,13 @@ module.exports = class {
             if (element.headingId) {
                 headingId = element.headingId;
 
-                document[headingId] = {};
+                document[headingId] = {
+                    'content': '',
+                };
                 document[headingId].title = element.content;
 
             } else {
-                if (document[headingId]) document[headingId].content = element.content;
+                if (document[headingId]) document[headingId].content += element.content;
             }
         }
 
@@ -112,6 +118,10 @@ module.exports = class {
         return Util.promisify(callback => docs.documents.get({
             documentId: this.DOCUMENT_ID,
         }, callback)).then(response => {
+            Object.entries(response.data.inlineObjects).forEach(([key, val]) => {
+                this.attachments[key] = val.inlineObjectProperties.embeddedObject;
+            });
+
             const data = this.getStructuredData(response.data.body.content);
 
             return data.map(element => {
