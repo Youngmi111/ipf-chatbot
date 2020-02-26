@@ -99,3 +99,14 @@ functions:
     timeout: 30
     events:
       - schedule: cron(0 0,5 ? * MON-FRI *)
+
+  ipf-culture-docs:
+    handler: handler/document_crawler.ipfCultureDocs
+    events:
+      - http:
+          path: api/doc/{docId}
+          method: get
+          request:
+            parameters:
+              paths:
+                docId: true

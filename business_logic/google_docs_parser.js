@@ -16,6 +16,10 @@ module.exports = class {
         });
     }
 
+    isTableContent(element) {
+        return element.hasOwnProperty('table');
+    }
+
     isHeadingContent(element) {
         return element.hasOwnProperty('paragraphStyle') && element.paragraphStyle.hasOwnProperty('namedStyleType') && element.paragraphStyle.namedStyleType.startsWith('HEADING');
     }
@@ -24,11 +28,34 @@ module.exports = class {
         let parsed = [];
 
         let headingId = null;
+        let depth = null;
 
-        if (this.isElementContainsContent(contentElement)) {
+        if (this.isTableContent(contentElement)) {
+            let tableContent = '';
+
+            contentElement.table.tableRows.forEach((row, idx) => {
+                let rowContent = '';
+                const colType = idx > 0 ? 'td' : 'th';
+
+                row.tableCells.forEach(cell => {
+                    cell.content.forEach(cellContent => {
+                        rowContent += `<${ colType }>${ this.parseContent(cellContent).content }</${ colType }>`;
+                    });
+                });
+
+                tableContent += `<tr>${ rowContent }</tr>`;
+            });
+
+            tableContent = `<table>${ tableContent }</table>`;
+            parsed.push(tableContent);
+
+        } else if (this.isElementContainsContent(contentElement)) {
             if (contentElement.hasOwnProperty('paragraph')) {
                 if (this.isHeadingContent(contentElement.paragraph)) {
                     headingId = contentElement.paragraph.paragraphStyle.headingId;
+
+                    const styleType = contentElement.paragraph.paragraphStyle.namedStyleType;
+                    if (styleType.startsWith('HEADING_')) depth = parseInt(styleType.substr(-1, 1));
                 }
 
                 let content = '';
@@ -39,7 +66,7 @@ module.exports = class {
                         content = content.replace('>', '&gt;');
 
                         if (pElement.textRun.textStyle.hasOwnProperty('link')) {
-                            content = `<a href="${ pElement.textRun.textStyle.link.url }">${ content }</a>`;
+                            content = `<a href="${ pElement.textRun.textStyle.link.url }" target="_blank">${ content }</a>`;
                         }
 
                         parsed.push(content);
@@ -53,21 +80,13 @@ module.exports = class {
                 if (!headingId && contentElement.paragraph.hasOwnProperty('bullet')) {
                     parsed.unshift('* ');
                 }
-
-            } else if (contentElement.hasOwnProperty('table')) {
-                contentElement.table.tableRows.forEach(row => {
-                    row.tableCells.forEach(cell => {
-                        cell.content.forEach(cellContent => {
-                            parsed.push(this.parseContent(cellContent).content);
-                        });
-                    });
-                });
             }
         }
 
         return {
             content: parsed.join(''),
             headingId,
+            depth,
         };
     }
 
@@ -92,6 +111,7 @@ module.exports = class {
                     'content': '',
                 };
                 document[headingId].title = element.content;
+                document[headingId].depth = element.depth;
 
             } else {
                 if (document[headingId]) document[headingId].content += element.content;
@@ -118,9 +138,11 @@ module.exports = class {
         return Util.promisify(callback => docs.documents.get({
             documentId: this.DOCUMENT_ID,
         }, callback)).then(response => {
-            Object.entries(response.data.inlineObjects).forEach(([key, val]) => {
-                this.attachments[key] = val.inlineObjectProperties.embeddedObject;
-            });
+            if (response.data.hasOwnProperty('inlineObjects')) {
+                Object.entries(response.data.inlineObjects).forEach(([key, val]) => {
+                    this.attachments[key] = val.inlineObjectProperties.embeddedObject;
+                });
+            }
 
             const data = this.getStructuredData(response.data.body.content);
 
@@ -129,6 +151,8 @@ module.exports = class {
                     'docId': this.DOCUMENT_ID,
                 }, element);
             });
+        }).catch(err => {
+            console.log(err);
         });
     }
 };
