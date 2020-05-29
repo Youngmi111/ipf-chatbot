@@ -1,8 +1,9 @@
 const AWS = require('aws-sdk');
 const fs = require('fs');
-const Holidays = require('date-holidays');
 
 const Util = require('./util');
+
+const DateHelper = require('./date_helper');
 
 const Helper = {
     setAuth(bot_id) {
@@ -29,66 +30,7 @@ const Helper = {
     },
 };
 
-Helper.Date = {
-    DAY: ['일', '월', '화', '수', '목', '금', '토', '일'],
-    microSecondsForOneDay: 60 * 60 * 24 * 1000,
-
-    isWeekday(date) {
-        const day = date.getDay();
-        return day > 0 && day < 6;
-    },
-
-    isWorkingDay(now = Date.now()) {
-        const date = new Date(now);
-
-        if (!this.isWeekday(date)) return false;
-
-        const hd = new Holidays('KR');
-        return hd.isHoliday(date) === false;
-    },
-
-    getHumanReadableDateFromDatetime(datetime) {
-        return `${ datetime.getFullYear() }년 ${ (datetime.getMonth() + 1) }월 ${ datetime.getDate() }일 ${ this.DAY[datetime.getDay()]}요일`;
-    },
-
-    getRemainingDays(currentDateTime, eventDateTime) {
-        return Math.floor((eventDateTime.getTime() - currentDateTime.getTime()) / this.microSecondsForOneDay);
-    },
-
-    isDDay(currentDateTime, eventDateTime) {
-        return eventDateTime.getTime() - currentDateTime.getTime() < this.microSecondsForOneDay;
-    },
-
-    getAvailableDate(dateTime, findInPast = true) {
-        while (!this.isWorkingDay(dateTime)) {
-            dateTime += findInPast ? this.microSecondsForOneDay * -1 : this.microSecondsForOneDay;
-        }
-
-        return dateTime;
-    },
-
-    getWorkingDay(since, daysBefore) {
-        while (daysBefore > 0) {
-            since -= this.microSecondsForOneDay;
-
-            if (since === this.getAvailableDate(since)) daysBefore--;
-        }
-
-        return since;
-    },
-
-    getTheFirstWorkingDayOfMonth(dateTime = Date.now()) {
-        const now = new Date(dateTime);
-
-        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-
-        return this.getAvailableDate(firstDayOfMonth, false);
-    },
-
-    isTheFirstWorkingDayOfMonth(now = new Date()) {
-        return now.getDate() === new Date(this.getTheFirstWorkingDayOfMonth(now.getTime())).getDate();
-    },
-};
+Helper.Date = DateHelper;
 
 Helper.DynamoDB = (() => {
     const client = new AWS.DynamoDB({
