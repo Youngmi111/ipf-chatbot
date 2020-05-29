@@ -1,6 +1,7 @@
 const ChatbotServer = require('./chatbot_server');
 const Helper = require('./helper');
-const OfficeEvent = require('./office_event');
+const Payday = require('./payday');
+const CashDisbursement = require('./cash_disbursement');
 const OfficialDocument = require('./official_document');
 const Official101Doc = require('./official_guide');
 
@@ -17,7 +18,7 @@ class YoungmiBot extends ChatbotServer {
         if (Helper.Date.isTheFirstWorkingDayOfMonth()) {
             event.push('CASH_DISBURSEMENT');
 
-        } else if (OfficeEvent.isDeadlineForTheCashDisbursement()) {
+        } else if (CashDisbursement.isTheDay()) {
             event.push('IS_DEADLINE_FOR_CASH_DISBURSEMENT');
         }
 
@@ -27,13 +28,15 @@ class YoungmiBot extends ChatbotServer {
     generateMessage(event) {
         let message = '';
 
+        const handler = new CashDisbursement();
+
         switch (event) {
             case 'CASH_DISBURSEMENT':
-                message = OfficeEvent.generateMessageForCashDisbursement();
+                message = handler.messageForThe1stBusinessDayOfMonth;
                 break;
 
             case 'IS_DEADLINE_FOR_CASH_DISBURSEMENT':
-                message = OfficeEvent.generateMessageForCashDisbursementDeadline();
+                message = handler.messageForTheDay;
                 break;
 
             default:
@@ -109,10 +112,12 @@ class YoungmiBot extends ChatbotServer {
                 response = result ? '공지를 전달했습니다!' : '제가... 뭔가.... 실수를 한 것 같아요. 다시 한 번 메시지 주시겠어요?';
 
             } else if (this.containsSalaryQuestion(user_message)) {
-                response = OfficeEvent.generateMessageForPayday();
+                const handler = new Payday();
+                response = handler.answer();
 
             } else if (this.containsCashDisbursementQuestion(user_message)) {
-                response = OfficeEvent.generateMessageForCashDisbursementAnswer();
+                const handler = new CashDisbursement();
+                response = handler.answer();
 
             } else if (this.containsDocumentRequest(user_message)) {
                 response = OfficialDocument.generateMessageForDocumentLink(user_message);
