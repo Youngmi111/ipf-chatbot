@@ -10,13 +10,16 @@
   "author": "klee@iportfolio.co.kr",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^14.0.5",
     "chai": "^4.2.0",
     "dotenv": "^8.2.0",
     "mocha": "^6.2.0",
     "serverless-aws-alias": "^1.7.2",
     "serverless-dotenv-plugin": "^2.1.1",
     "serverless-offline": "^5.11.0",
-    "serverless-plugin-include-dependencies": "^3.2.1"
+    "serverless-plugin-include-dependencies": "^3.2.1",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.3"
   },
   "dependencies": {
     "aws-elasticsearch-client": "^2.0.0",

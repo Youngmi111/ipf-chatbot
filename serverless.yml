@@ -46,6 +46,7 @@ package:
     - business_logic/**
     - test/**
     - docs/**
+    - src/**
 
 
 plugins:
