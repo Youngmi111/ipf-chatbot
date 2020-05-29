@@ -16,7 +16,8 @@ class YoungmiBot extends ChatbotServer {
         if (forced === true) event.push('CASH_DISBURSEMENT');
 
         if (Helper.Date.isTheFirstWorkingDayOfMonth()) {
-            event.push('CASH_DISBURSEMENT');
+            const timeAsMilliSecondsForTheDeadline = CashDisbursement.get(Date.now());
+            if (timeAsMilliSecondsForTheDeadline > Date.now()) event.push('CASH_DISBURSEMENT');
 
         } else if (CashDisbursement.isTheDay()) {
             event.push('IS_DEADLINE_FOR_CASH_DISBURSEMENT');
