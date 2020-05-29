@@ -9,6 +9,7 @@ const Payday = require('../business_logic/payday');
 const CashDisbursement = require('../business_logic/cash_disbursement');
 const OfficeEvent = require('../business_logic/office_event');
 const OfficialDocument = require('../business_logic/official_document');
+const OfficialGuide = require('../business_logic/official_guide');
 
 const bot = new YoungmiBot();
 
@@ -97,7 +98,14 @@ describe('message', function() {
     });
 });
 
-/*/
+describe('101', function() {
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = process.cwd() + '/auth.json';
+
+    it('get document content', async () => {
+        const results = OfficialGuide.generateMessage('지출 결의서');
+    });
+});
+
 describe('send', function() {
     it('send message', async () => {
         process.env.GOOGLE_APPLICATION_CREDENTIALS = process.cwd() + '/auth.json';
