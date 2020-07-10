@@ -95,6 +95,17 @@ functions:
     events:
       - schedule: cron(0 1 ? * MON-FRI *)
 
+  youngmi-holiday:
+    handler: handler/youngmi_bot.holiday
+    events:
+      - http:
+          path: api/holiday
+          method: get
+          request:
+            parameters:
+              query:
+                timestamp: true
+
   docs-crawl:
     handler: handler/document_crawler.googleDocsCrawler
     timeout: 30

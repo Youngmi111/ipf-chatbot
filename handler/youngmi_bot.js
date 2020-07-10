@@ -59,3 +59,21 @@ module.exports.eventHandler = async (event, context) => {
 
     return response;
 };
+
+module.exports.holiday = async (event, context) => {
+    let resBody = {
+        'holiday': false,
+    };
+
+    try {
+        const timestamp = parseInt(event.queryStringParameters.timestamp);
+        resBody.holiday = !!Helper.Date.isHoliday(new Date(timestamp));
+
+    } catch (err) {
+        console.log(err);
+    }
+
+    response.body = JSON.stringify(resBody);
+
+    return response;
+};

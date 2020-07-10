@@ -5,6 +5,10 @@ module.exports = {
 
     microSecondsForOneDay: 60 * 60 * 24 * 1000,
 
+    isHoliday(date: Date): boolean {
+        return new Holidays('KR').isHoliday(date);
+    },
+
     isWeekday(date: Date): boolean {
         const day = date.getDay();
 
@@ -16,9 +20,7 @@ module.exports = {
 
         if (!this.isWeekday(date)) return false;
 
-        const hd = new Holidays('KR');
-
-        return !hd.isHoliday(date);
+        return !this.isHoliday(date);
     },
 
     getHumanReadableDateFromDatetime(date: Date): string {
