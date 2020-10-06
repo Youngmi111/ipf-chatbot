@@ -106,6 +106,12 @@ functions:
               query:
                 timestamp: true
 
+  youngmi-megaphone:
+    runtime: python3.7
+    handler: handler/youngmi_bot.megaphone
+    events:
+      - schedule: cron(0 1 ? * MON-FRI *)
+
   docs-crawl:
     handler: handler/document_crawler.googleDocsCrawler
     timeout: 30
